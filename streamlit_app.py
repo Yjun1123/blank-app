@@ -1,7 +1,7 @@
 import streamlit as st
 import cv2
 import numpy as np
-from streamlit_webrtc import VideoTransformerBase, webrtc_streamer
+from PIL import Image
 
 def calculate_price(radius):
     if 160 <= radius <= 170:
@@ -15,24 +15,25 @@ def calculate_price(radius):
     else:
         return 0.0, "No matching price"
 
-class VideoTransformer(VideoTransformerBase):
-    def __init__(self):
-        self.object_count = 0
-        self.total_price = 0.0
+def main():
+    st.title("Circular ROI Detection and Pricing")
 
-    def transform(self, frame):
-        # Convert frame to a format suitable for OpenCV
-        img = frame.to_ndarray(format="bgr")
-        
-        # Process the frame
-        input_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # Use camera input to capture an image
+    image_file = st.camera_input("Capture Image")
+
+    if image_file is not None:
+        # Read and process the uploaded image
+        input_image = Image.open(image_file)
+        input_image = np.array(input_image)
+
+        # Process the image
+        input_gray = cv2.cvtColor(input_image, cv2.COLOR_BGR2GRAY)
         input_sharp_img = cv2.GaussianBlur(input_gray, (5, 5), 0)
         _, binary_image = cv2.threshold(input_sharp_img, 100, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Reset counters for each frame
-        self.object_count = 0
-        self.total_price = 0.0
+        object_count = 0
+        total_price = 0.0
         
         min_area = 10000
         max_area = 300000
@@ -46,23 +47,18 @@ class VideoTransformer(VideoTransformerBase):
                 if radius > 0:
                     mask = np.zeros_like(input_gray)
                     cv2.circle(mask, (int(x), int(y)), radius, 255, thickness=-1)
-                    circular_roi = cv2.bitwise_and(img, img, mask=mask)
+                    circular_roi = cv2.bitwise_and(input_image, input_image, mask=mask)
                     x, y, w, h = cv2.boundingRect(contour)
                     cropped_circular_roi = circular_roi[y:y+h, x:x+w]
 
                     price, price_display = calculate_price(radius)
-                    self.total_price += price
-                    self.object_count += 1
+                    total_price += price
+                    object_count += 1
 
-        # Display results on the frame
-        cv2.putText(img, f"Total coins: {self.object_count}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-        cv2.putText(img, f"Total price: RM {self.total_price:.2f}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-
-        return img
-
-def main():
-    st.title("Real-Time Circular ROI Detection and Pricing with WebRTC")
-    webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
+        # Display results
+        st.image(input_image, caption="Captured Image", use_column_width=True)
+        st.write(f"Total number of coins found: {object_count}")
+        st.write(f"Total price: RM {total_price:.2f}")
 
 if __name__ == "__main__":
     main()
