@@ -18,13 +18,14 @@ def calculate_price(radius):
 def main():
     st.title("Real-Time Circular ROI Detection and Pricing")
 
-    # Start webcam video
     run = st.checkbox("Run Video")
     
-    # Initialize webcam
     if run:
-        # Capture video from the webcam
         video_capture = cv2.VideoCapture(0)
+
+        if not video_capture.isOpened():
+            st.write("Webcam could not be opened.")
+            return
 
         while True:
             ret, frame = video_capture.read()
@@ -66,7 +67,6 @@ def main():
             st.write(f"Total number of coins found: {object_count}")
             st.write(f"Total price: RM {total_price:.2f}")
 
-            # Stop the video when the user wants to
             if st.button("Stop Video"):
                 break
 
@@ -76,3 +76,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
