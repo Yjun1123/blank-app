@@ -27,9 +27,10 @@ class VideoTransformer(VideoTransformerBase):
         _, binary_image = cv2.threshold(input_sharp_img, 100, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        self.object_count = 0
+        self.object_count   
+ = 0
         self.total_price = 0.0
-        
+
         min_area = 10000
         max_area = 300000
 
@@ -48,9 +49,10 @@ class VideoTransformer(VideoTransformerBase):
                     self.total_price += price
                     self.object_count += 1
 
-        cv2.putText(img, f"Total coins: {self.object_count}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-        cv2.putText(img, f"Total price: RM {self.total_price:.2f}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+                    cv2.putText(img, f"Total coins: {self.object_count}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+                    cv2.putText(img, f"Total price: RM {self.total_price:.2f}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
 
+        # Return the modified frame to be displayed
         return img
 
 def main():
