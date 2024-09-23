@@ -21,7 +21,7 @@ def main():
     run = st.checkbox("Run Video")
     
     if run:
-        video_capture = cv2.VideoCapture(0)
+        video_capture = cv2.VideoCapture(1)
 
         if not video_capture.isOpened():
             st.write("Webcam could not be opened.")
