@@ -27,8 +27,7 @@ class VideoTransformer(VideoTransformerBase):
         _, binary_image = cv2.threshold(input_sharp_img, 100, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        self.object_count   
- = 0
+        self.object_count = 0
         self.total_price = 0.0
 
         min_area = 10000
