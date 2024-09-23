@@ -21,12 +21,16 @@ class VideoTransformer(VideoTransformerBase):
         self.total_price = 0.0
 
     def transform(self, frame):
+        # Convert frame to a format suitable for OpenCV
         img = frame.to_ndarray(format="bgr")
+        
+        # Process the frame
         input_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         input_sharp_img = cv2.GaussianBlur(input_gray, (5, 5), 0)
         _, binary_image = cv2.threshold(input_sharp_img, 100, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+        # Reset counters for each frame
         self.object_count = 0
         self.total_price = 0.0
         
@@ -50,6 +54,7 @@ class VideoTransformer(VideoTransformerBase):
                     self.total_price += price
                     self.object_count += 1
 
+        # Display results on the frame
         cv2.putText(img, f"Total coins: {self.object_count}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
         cv2.putText(img, f"Total price: RM {self.total_price:.2f}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
 
@@ -57,10 +62,7 @@ class VideoTransformer(VideoTransformerBase):
 
 def main():
     st.title("Real-Time Circular ROI Detection and Pricing with WebRTC")
-    
-    # Add a button to start the video stream
-    if st.button("Start Camera"):
-        webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
+    webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
 
 if __name__ == "__main__":
     main()
