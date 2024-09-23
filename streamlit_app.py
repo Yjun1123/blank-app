@@ -2,7 +2,10 @@ import streamlit as st
 import cv2
 import numpy as np
 from streamlit_webrtc import VideoTransformerBase, webrtc_streamer
+import logging
+from streamlit_webrtc import WebRtcMode
 
+# Function to calculate the price based on the detected radius of the circular object
 def calculate_price(radius):
     if 160 <= radius <= 170:
         return 0.20, "20 sen"
@@ -15,11 +18,13 @@ def calculate_price(radius):
     else:
         return 0.0, "No matching price"
 
+# Class to handle the video frame transformation
 class VideoTransformer(VideoTransformerBase):
     def __init__(self):
         self.object_count = 0
         self.total_price = 0.0
 
+    # Function to process each frame
     def transform(self, frame):
         img = frame.to_ndarray(format="bgr")
         input_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -33,6 +38,7 @@ class VideoTransformer(VideoTransformerBase):
         min_area = 10000
         max_area = 300000
 
+        # Loop through detected contours
         for contour in contours:
             contour_area = cv2.contourArea(contour)
             if min_area <= contour_area <= max_area:
@@ -48,24 +54,37 @@ class VideoTransformer(VideoTransformerBase):
                     self.total_price += price
                     self.object_count += 1
 
-                    cv2.putText(img, f"Total coins: {self.object_count}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-                    cv2.putText(img, f"Total price: RM {self.total_price:.2f}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+        # Add text to the output video
+        cv2.putText(img, f"Total coins: {self.object_count}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+        cv2.putText(img, f"Total price: RM {self.total_price:.2f}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
 
-        # Return the modified frame to be displayed
         return img
 
+# Main Streamlit function
 def main():
     st.title("Real-Time Circular ROI Detection and Pricing with WebRTC")
+
+    # Debugging logs to troubleshoot WebRTC
+    logging.basicConfig(level=logging.DEBUG)
 
     # Use session state to control the camera streaming
     if "camera_started" not in st.session_state:
         st.session_state.camera_started = False
 
+    # Start Camera button
     if st.button("Start Camera"):
         st.session_state.camera_started = True
 
+    # If the camera is started, initialize WebRTC streamer
     if st.session_state.camera_started:
-        webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
+        webrtc_streamer(
+            key="circular_roi_detection",
+            video_transformer_factory=VideoTransformer,
+            mode=WebRtcMode.SENDRECV,  # Ensures we are in SEND/RECEIVE mode for the video stream
+            async_transform=True,      # For asynchronous video frame processing
+            logging_level=logging.DEBUG
+        )
 
+# Run the main function
 if __name__ == "__main__":
     main()
