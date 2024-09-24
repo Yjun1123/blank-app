@@ -1,7 +1,5 @@
 streamlit
 opencv-python-headless
 numpy
-pillow
-streamlit-webrtc
-opencv-python
-matplotlib
+Pillow
+
